@@ -51,8 +51,8 @@ namespace PlatformService
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "PlatformService v1"));
             }
-
-            app.UseHttpsRedirection();
+			//https cors yüzünden deployment için kapalı
+            //app.UseHttpsRedirection();
 
             app.UseRouting();
 
