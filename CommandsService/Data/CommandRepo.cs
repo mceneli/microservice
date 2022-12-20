@@ -9,6 +9,12 @@ namespace CommandsService.Data{
 		{
 			_context = context;
 		}
+
+        public bool ExternalPlatformExist(int externalPlatformId)
+        {
+            return _context.Platforms.Any(p => p.ExternalID == externalPlatformId);
+        }
+
         void ICommandRepo.CreateCommand(int platformId, Command command)
         {
             if(command == null){
@@ -25,7 +31,7 @@ namespace CommandsService.Data{
 			}
 			_context.Platforms.Add(plat);
         }
-
+		
         IEnumerable<Platform> ICommandRepo.GetAllPlatforms()
         {
             return _context.Platforms.ToList();
