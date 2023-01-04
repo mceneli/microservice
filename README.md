@@ -1,2 +1,2 @@
 # microservice
- .net mvc microservice docker kubernetes rabbitmq
+ .net core microservice docker kubernetes rabbitmq grpc
