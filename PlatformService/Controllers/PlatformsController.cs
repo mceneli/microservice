@@ -9,6 +9,7 @@ using PlatformService.Dtos;
 using PlatformService.Models;
 using PlatformService.SyncDataServices.Http;
 using PlatformService.AsyncDataServices;
+using Microsoft.AspNetCore.Authorization;
 
 namespace PlatformService.Controllers{
     [Route("api/[controller]")]
@@ -30,7 +31,7 @@ namespace PlatformService.Controllers{
 			_messageBusClient = messageBusClient;
         }
 
-        [HttpGet]
+        [HttpGet, Authorize(Roles = "User")]
         public ActionResult<IEnumerable<PlatformReadDto>> GetPlatforms(){
             Console.WriteLine("-> Getting Platforms...");
 
