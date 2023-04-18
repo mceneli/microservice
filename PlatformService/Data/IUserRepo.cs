@@ -6,5 +6,7 @@ namespace PlatformService.Data{
         bool SaveChanges();
         IEnumerable<User> GetAllUsers();
         void CreateUser(User user);
+        User GetUserByName(string username);
+        bool IsThereUser(string username);
     }
 }

@@ -36,7 +36,11 @@ namespace PlatformService.Controllers{
         public async Task<ActionResult<UserDto>> Register(UserDto request){
             Console.WriteLine("-> Registering User...");
             CreatePasswordHash(request.Password,out byte[] passwordHash,out byte[] passwordSalt);
-            
+
+            if(_userrepository.IsThereUser(request.Username)){
+                throw new ArgumentException("User already registered", nameof(request.Username));
+            }
+
             user.Username = request.Username;
             user.PasswordHash = passwordHash;
             user.PasswordSalt = passwordSalt;
@@ -50,8 +54,11 @@ namespace PlatformService.Controllers{
 
         [HttpPost("login")]
         public async Task<ActionResult<string>> Login(UserDto request){
+            Console.WriteLine("-> Logging In User...");
 
-            if(user.Username != request.Username){
+            var user = _userrepository.GetUserByName(request.Username);
+
+            if(user == null || user.Username != request.Username){
                 return BadRequest("User not found.");
             }
             if(!VerifyPasswordHash(request.Password,user.PasswordHash,user.PasswordSalt)){

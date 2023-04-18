@@ -28,5 +28,20 @@ namespace PlatformService.Data{
         {
             return (_context.SaveChanges() >=0);
         }
+
+        public User GetUserByName(string username)
+        {
+            return _context.Users.FirstOrDefault(p => p.Username == username);
+        }
+
+        public bool IsThereUser(string username)
+        {
+            var user = _context.Users.FirstOrDefault(p => p.Username == username);
+            if(user != null){
+                return true;
+            }
+            return false;
+        }
+
     }
 }
