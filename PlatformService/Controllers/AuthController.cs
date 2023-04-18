@@ -1,13 +1,16 @@
+using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using PlatformService.Data;
 using PlatformService.Dtos;
 using PlatformService.Models;
 
@@ -17,21 +20,31 @@ namespace PlatformService.Controllers{
     public class AuthController : ControllerBase{
         public static User user = new User();
         private readonly IConfiguration _configuration;
+        private readonly IMapper _mapper;
+        private readonly IPlatformRepo _repository;
+        private readonly IUserRepo _userrepository;
 
-        public AuthController(IConfiguration configuration)
+        public AuthController(IConfiguration configuration,IMapper mapper,IPlatformRepo repository,IUserRepo userrepository)
         {
             _configuration = configuration;
+            _mapper = mapper;
+            _repository = repository;
+            _userrepository = userrepository;
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult<User>> Register(UserDto request){
-
+        public async Task<ActionResult<UserDto>> Register(UserDto request){
+            Console.WriteLine("-> Registering User...");
             CreatePasswordHash(request.Password,out byte[] passwordHash,out byte[] passwordSalt);
             
             user.Username = request.Username;
             user.PasswordHash = passwordHash;
             user.PasswordSalt = passwordSalt;
 
+            var userModel = _mapper.Map<User>(user);
+            _userrepository.CreateUser(userModel);
+            _userrepository.SaveChanges();
+            
             return Ok(user);
         }
 

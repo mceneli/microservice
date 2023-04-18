@@ -51,6 +51,7 @@ namespace PlatformService
 			}
 			
             services.AddScoped<IPlatformRepo, PlatformRepo>();
+            services.AddScoped<IUserRepo, UserRepo>();
             services.AddHttpClient<ICommandDataClient,HttpCommandDataClient>();
 			services.AddSingleton<IMessageBusClient, MessageBusClient>();
             services.AddGrpc();
@@ -96,7 +97,7 @@ namespace PlatformService
             //app.UseHttpsRedirection();
 
             app.UseRouting();
-            
+
             app.UseAuthentication();
             app.UseAuthorization();
 
