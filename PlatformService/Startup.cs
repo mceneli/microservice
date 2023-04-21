@@ -81,6 +81,13 @@ namespace PlatformService
                     ValidateAudience = false
                 };
             });
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAllOrigins",
+                    builder => builder.AllowAnyOrigin()
+                                      .AllowAnyMethod()
+                                      .AllowAnyHeader());
+            });
             Console.WriteLine($"--> CommandsService Endpoint {Configuration["CommandsService"]}");
         }
 
@@ -100,6 +107,8 @@ namespace PlatformService
 
             app.UseAuthentication();
             app.UseAuthorization();
+
+            app.UseCors("AllowAllOrigins");
 
             app.UseEndpoints(endpoints =>
             {
