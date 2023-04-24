@@ -67,7 +67,8 @@ namespace PlatformService.Controllers{
 
             string token = CreateToken(user);
 
-            return Ok(token);
+            var jsontoken = new { Token = token };
+            return new JsonResult(jsontoken);
         }
 
         private string CreateToken(User user){
