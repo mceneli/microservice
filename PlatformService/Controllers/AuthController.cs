@@ -38,7 +38,8 @@ namespace PlatformService.Controllers{
             CreatePasswordHash(request.Password,out byte[] passwordHash,out byte[] passwordSalt);
 
             if(_userrepository.IsThereUser(request.Username)){
-                throw new ArgumentException("User already registered", nameof(request.Username));
+                var resulttoken = new { result = "1" };
+                return new JsonResult(resulttoken);
             }
 
             user.Username = request.Username;
@@ -59,15 +60,17 @@ namespace PlatformService.Controllers{
             var user = _userrepository.GetUserByName(request.Username);
 
             if(user == null || user.Username != request.Username){
-                return BadRequest("User not found.");
+                var resulttoken = new { result = "1" };
+                return new JsonResult(resulttoken);
             }
             if(!VerifyPasswordHash(request.Password,user.PasswordHash,user.PasswordSalt)){
-                return BadRequest("Wrong password.");
+                var resulttoken = new { result = "2" };
+                return new JsonResult(resulttoken);
             }
 
             string token = CreateToken(user);
 
-            var jsontoken = new { Token = token };
+            var jsontoken = new { result = "3", Token = token };
             return new JsonResult(jsontoken);
         }
 
