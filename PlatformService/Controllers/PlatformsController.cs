@@ -31,7 +31,8 @@ namespace PlatformService.Controllers{
 			_messageBusClient = messageBusClient;
         }
 
-        [HttpGet, Authorize(Roles = "User")]
+        //[HttpGet, Authorize(Roles = "User")]
+        [HttpGet]
         public ActionResult<IEnumerable<PlatformReadDto>> GetPlatforms(){
             Console.WriteLine("-> Getting Platforms...");
 
