@@ -11,6 +11,7 @@ namespace PlatformService.Data
 
         public DbSet<Platform> Platforms { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<Tweet> Tweets { get; set; }
 
     }
 }

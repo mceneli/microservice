@@ -57,6 +57,19 @@ namespace PlatformService.Data{
                 Console.WriteLine("--> We already have user data");
             }
 
+            if(!context.Tweets.Any()){
+                Console.WriteLine("--> Seeding tweet data");
+
+                context.Tweets.AddRange(
+                    new Tweet(){UserName="mceneli", Text="first tweet!", Date=DateTime.Now}
+                );
+
+                context.SaveChanges();
+
+            }else{
+                Console.WriteLine("--> We already have tweet data");
+            }
+
         }
     }
 }
