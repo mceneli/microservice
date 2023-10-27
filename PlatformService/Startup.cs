@@ -22,6 +22,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text;
+using Serilog;
+using Serilog.Exceptions;
+using Serilog.Sinks.Elasticsearch;
+using System.Reflection;
 
 namespace PlatformService
 {
@@ -29,7 +33,7 @@ namespace PlatformService
     {
 		public IConfiguration Configuration { get; }
 		private readonly IWebHostEnvironment _env;
-		
+
         public Startup(IConfiguration configuration, IWebHostEnvironment env)
         {
             Configuration = configuration;
@@ -89,6 +93,19 @@ namespace PlatformService
                                       .AllowAnyMethod()
                                       .AllowAnyHeader());
             });
+
+            Log.Logger = new LoggerConfiguration()
+            .Enrich.FromLogContext()
+            .Enrich.WithExceptionDetails()
+            .WriteTo.Debug()
+            .WriteTo.Console()
+            .WriteTo.Elasticsearch()
+            .Enrich.WithProperty("Environment",_env)
+            .ReadFrom.Configuration(Configuration)
+            .CreateLogger();
+
+            services.AddLogging(builder => builder.AddSerilog());
+
             Console.WriteLine($"--> CommandsService Endpoint {Configuration["CommandsService"]}");
         }
 

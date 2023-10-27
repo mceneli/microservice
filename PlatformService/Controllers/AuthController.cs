@@ -13,6 +13,7 @@ using Microsoft.IdentityModel.Tokens;
 using PlatformService.Data;
 using PlatformService.Dtos;
 using PlatformService.Models;
+using Serilog;
 
 namespace PlatformService.Controllers{
     [Route("api/[controller]")]
@@ -23,13 +24,15 @@ namespace PlatformService.Controllers{
         private readonly IMapper _mapper;
         private readonly IPlatformRepo _repository;
         private readonly IUserRepo _userrepository;
+        private readonly ILogger _logger;
 
-        public AuthController(IConfiguration configuration,IMapper mapper,IPlatformRepo repository,IUserRepo userrepository)
+        public AuthController(IConfiguration configuration,IMapper mapper,IPlatformRepo repository,IUserRepo userrepository,ILogger logger)
         {
             _configuration = configuration;
             _mapper = mapper;
             _repository = repository;
             _userrepository = userrepository;
+            _logger = logger;
         }
 
         [HttpPost("register")]
@@ -50,6 +53,9 @@ namespace PlatformService.Controllers{
             _userrepository.CreateUser(userModel);
             _userrepository.SaveChanges();
             
+            _logger.Information("registered");
+            _logger.Error("csac");
+
             return Ok(user);
         }
 
