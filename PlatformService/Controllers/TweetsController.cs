@@ -53,15 +53,15 @@ namespace PlatformService.Controllers{
             return NotFound();
         }
 
-        [HttpPost]
-        public async void CreateTweet(TweetCreateDto tweetCreateDto){
+        [HttpPost("CreateTweet"), Authorize(Roles = "User")]
+        public bool CreateTweet(TweetCreateDto tweetCreateDto){
             Console.WriteLine("-> Creating Tweet...");
 
-            tweetCreateDto.Date = DateTime.Now;
-
             var tweetModel = _mapper.Map<Tweet>(tweetCreateDto);
+            tweetModel.Date = DateTime.Now;
             _repository.CreateTweet(tweetModel);
             _repository.SaveChanges();
+            return true;
         }
 
     }

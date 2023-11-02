@@ -7,7 +7,5 @@ namespace PlatformService.Dtos{
         public string UserName { get; set; }
         [Required]
         public string Text { get; set; }
-        [Required]
-        public DateTime Date { get; set; }
     }
 }
