@@ -64,22 +64,31 @@ namespace PlatformService.Controllers{
             return true;
         }
 
-        [HttpDelete("{id}", Name = "DeleteTweetById")]
+        [HttpDelete("{id}", Name = "DeleteTweetById"), Authorize(Roles = "User")]
         public ActionResult DeleteTweetById(int id)
         {
             Console.WriteLine("-> Deleting Tweet By Id...");
+            string authorizatedUser = HttpContext.User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")?.Value;
 
-            var tweetItem = _repository.GetTweetById(id);
+            Tweet tweetItem = _repository.GetTweetById(id);
 
             if (tweetItem == null)
             {
                 return NotFound();
             }
+            if(authorizatedUser == tweetItem.UserName){
+                _repository.DeleteTweet(tweetItem); // Varsayılan olarak, silme işlemini gerçekleştirecek bir metotunuz olduğunu varsayıyorum
+                _repository.SaveChanges();
+                return Ok();
+            }          
+            
+            CustomError error = new CustomError
+            {
+                Message = "Tweet does not belong to the user",
+                StatusText = "Custom Bad Request"
+            };
 
-            _repository.DeleteTweet(tweetItem); // Varsayılan olarak, silme işlemini gerçekleştirecek bir metotunuz olduğunu varsayıyorum
-            _repository.SaveChanges();
-
-            return NoContent();
+            return BadRequest(error);
         }
     }
 }
