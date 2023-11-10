@@ -64,5 +64,22 @@ namespace PlatformService.Controllers{
             return true;
         }
 
+        [HttpDelete("{id}", Name = "DeleteTweetById")]
+        public ActionResult DeleteTweetById(int id)
+        {
+            Console.WriteLine("-> Deleting Tweet By Id...");
+
+            var tweetItem = _repository.GetTweetById(id);
+
+            if (tweetItem == null)
+            {
+                return NotFound();
+            }
+
+            _repository.DeleteTweet(tweetItem); // Varsayılan olarak, silme işlemini gerçekleştirecek bir metotunuz olduğunu varsayıyorum
+            _repository.SaveChanges();
+
+            return NoContent();
+        }
     }
 }

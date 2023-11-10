@@ -29,6 +29,16 @@ namespace PlatformService.Data{
             return _context.Tweets.FirstOrDefault(p => p.Id == id);
         }
 
+        public void DeleteTweet(Tweet twt)
+        {
+            if (twt == null)
+            {
+                throw new ArgumentNullException(nameof(twt));
+            }
+
+            _context.Tweets.Remove(twt);
+        }
+
         public bool SaveChanges()
         {
             return (_context.SaveChanges() >=0);

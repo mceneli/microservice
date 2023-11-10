@@ -7,5 +7,6 @@ namespace PlatformService.Data{
         IEnumerable<Tweet> GetAllTweets();
         Tweet GetTweetById(int id);
         void CreateTweet(Tweet twt);
+        void DeleteTweet(Tweet twt);
     }
 }
