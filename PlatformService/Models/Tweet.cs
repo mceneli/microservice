@@ -15,5 +15,7 @@ namespace PlatformService.Models{
 
         [Required]
         public DateTime Date { get; set; }
+
+        public string ImagePath { get; set; }
     }
 }

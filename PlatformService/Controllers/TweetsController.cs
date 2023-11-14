@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ using PlatformService.Models;
 using PlatformService.SyncDataServices.Http;
 using PlatformService.AsyncDataServices;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 
 namespace PlatformService.Controllers{
     [Route("api/[controller]")]
@@ -54,11 +56,19 @@ namespace PlatformService.Controllers{
         }
 
         [HttpPost("CreateTweet"), Authorize(Roles = "User")]
-        public bool CreateTweet(TweetCreateDto tweetCreateDto){
+        public bool CreateTweet([FromForm] TweetCreateDto tweetCreateDto){
             Console.WriteLine("-> Creating Tweet...");
 
             var tweetModel = _mapper.Map<Tweet>(tweetCreateDto);
             tweetModel.Date = DateTime.Now;
+
+            if (Request.Form.Files.Count > 0)
+            {
+                var imageFile = Request.Form.Files[0];  
+                string imagePath = SaveImageToStorage(imageFile);
+                tweetModel.ImagePath = imagePath;
+            }
+
             _repository.CreateTweet(tweetModel);
             _repository.SaveChanges();
             return true;
@@ -77,7 +87,7 @@ namespace PlatformService.Controllers{
                 return NotFound();
             }
             if(authorizatedUser == tweetItem.UserName){
-                _repository.DeleteTweet(tweetItem); // Varsayılan olarak, silme işlemini gerçekleştirecek bir metotunuz olduğunu varsayıyorum
+                _repository.DeleteTweet(tweetItem);
                 _repository.SaveChanges();
                 return Ok();
             }          
@@ -89,6 +99,26 @@ namespace PlatformService.Controllers{
             };
 
             return BadRequest(error);
+        }
+
+        private string SaveImageToStorage(IFormFile imageFile)
+        {
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+
+            if (!Directory.Exists(uploadsFolder))
+            {
+                Directory.CreateDirectory(uploadsFolder);
+            }
+
+            var uniqueFileName = Guid.NewGuid().ToString() + "_" + imageFile.FileName;
+            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            {
+                imageFile.CopyTo(fileStream);
+            }
+
+            return Path.Combine("/uploads", uniqueFileName);
         }
     }
 }
