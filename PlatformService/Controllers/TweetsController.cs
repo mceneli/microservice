@@ -40,6 +40,15 @@ namespace PlatformService.Controllers{
 
             var tweetItem = _repository.GetAllTweets();
 
+            foreach (var item in tweetItem)
+            {
+                if(item.ImagePath != null){
+                    var imageBytes = System.IO.File.ReadAllBytes(item.ImagePath);
+                    var base64String = Convert.ToBase64String(imageBytes);
+                    item.ImagePath = base64String;
+                }
+            }
+
             return Ok(_mapper.Map<IEnumerable<TweetReadDto>>(tweetItem));
         }
 
@@ -59,13 +68,15 @@ namespace PlatformService.Controllers{
         public bool CreateTweet([FromForm] TweetCreateDto tweetCreateDto){
             Console.WriteLine("-> Creating Tweet...");
 
+            string authorizatedUser = HttpContext.User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")?.Value;
+
             var tweetModel = _mapper.Map<Tweet>(tweetCreateDto);
             tweetModel.Date = DateTime.Now;
 
             if (Request.Form.Files.Count > 0)
             {
                 var imageFile = Request.Form.Files[0];  
-                string imagePath = SaveImageToStorage(imageFile);
+                string imagePath = SaveImageToStorage(imageFile,authorizatedUser);
                 tweetModel.ImagePath = imagePath;
             }
 
@@ -101,9 +112,9 @@ namespace PlatformService.Controllers{
             return BadRequest(error);
         }
 
-        private string SaveImageToStorage(IFormFile imageFile)
+        private string SaveImageToStorage(IFormFile imageFile,string authorizatedUser)
         {
-            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", authorizatedUser);
 
             if (!Directory.Exists(uploadsFolder))
             {
@@ -118,7 +129,7 @@ namespace PlatformService.Controllers{
                 imageFile.CopyTo(fileStream);
             }
 
-            return Path.Combine("/uploads", uniqueFileName);
+            return Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", authorizatedUser, uniqueFileName);
         }
     }
 }
