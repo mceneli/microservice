@@ -19,24 +19,24 @@ namespace PlatformService.Controllers{
     [Route("api/[controller]")]
     [ApiController]
     public class AuthController : ControllerBase{
-        public static User user = new User();
+        private static User user1 = new();
         private readonly IConfiguration _configuration;
         private readonly IMapper _mapper;
-        private readonly IPlatformRepo _repository;
         private readonly IUserRepo _userrepository;
         private readonly ILogger _logger;
 
-        public AuthController(IConfiguration configuration,IMapper mapper,IPlatformRepo repository,IUserRepo userrepository,ILogger logger)
+        public static User User1 { get => user1; set => user1 = value; }
+
+        public AuthController(IConfiguration configuration,IMapper mapper,IUserRepo userrepository,ILogger logger)
         {
             _configuration = configuration;
             _mapper = mapper;
-            _repository = repository;
             _userrepository = userrepository;
             _logger = logger;
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult<UserDto>> Register(UserDto request){
+        public ActionResult<UserDto> Register(UserDto request){
             Console.WriteLine("-> Registering User...");
             CreatePasswordHash(request.Password,out byte[] passwordHash,out byte[] passwordSalt);
 
@@ -45,31 +45,31 @@ namespace PlatformService.Controllers{
                 return new JsonResult(resulttoken);
             }
 
-            user.Username = request.Username;
-            user.PasswordHash = passwordHash;
-            user.PasswordSalt = passwordSalt;
+            User1.Username = request.Username;
+            User1.PasswordHash = passwordHash;
+            User1.PasswordSalt = passwordSalt;
 
-            var userModel = _mapper.Map<User>(user);
+            User userModel = _mapper.Map<User>(User1);
             _userrepository.CreateUser(userModel);
             _userrepository.SaveChanges();
             
             _logger.Information("registered");
-            _logger.Error("csac");
+            _logger.Error("registered");
 
-            return Ok(user);
+            return Ok(User1);
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<string>> Login(UserDto request){
+        public ActionResult<string> Login(UserDto request){
             Console.WriteLine("-> Logging In User...");
 
-            var user = _userrepository.GetUserByName(request.Username);
+            User user = _userrepository.GetUserByName(request.Username);
 
             if(user == null || user.Username != request.Username){
                 var resulttoken = new { result = "1" };
                 return new JsonResult(resulttoken);
             }
-            if(!VerifyPasswordHash(request.Password,user.PasswordHash,user.PasswordSalt)){
+            if(!VerifyPasswordHash(request.Password,user.PasswordHash)){
                 var resulttoken = new { result = "2" };
                 return new JsonResult(resulttoken);
             }
@@ -81,38 +81,37 @@ namespace PlatformService.Controllers{
         }
 
         private string CreateToken(User user){
-            List<Claim> claims = new List<Claim>{
+            List<Claim> claims = new()
+            {
                 new Claim(ClaimTypes.Name, user.Username),
                 new Claim(ClaimTypes.Role, "User")
             };
 
-            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(
+            SymmetricSecurityKey key = new(System.Text.Encoding.UTF8.GetBytes(
                 _configuration.GetSection("AppSettings:Token").Value));
 
-            var creds = new SigningCredentials(key,SecurityAlgorithms.HmacSha512Signature);
+            SigningCredentials creds = new(key,SecurityAlgorithms.HmacSha512Signature);
 
-            var token = new JwtSecurityToken(
+            JwtSecurityToken token = new(
                 claims:claims,
                 expires: System.DateTime.Now.AddDays(1),
                 signingCredentials:creds);
 
-            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+            string jwt = new JwtSecurityTokenHandler().WriteToken(token);
 
             return jwt;
         }
 
-        private void CreatePasswordHash(string password,out byte[] passwordHash,out byte[] passwordSalt){
-            using(var hmac = new HMACSHA512()){
-                passwordSalt = hmac.Key;
-                passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
-            }
+        private static void CreatePasswordHash(string password,out byte[] passwordHash,out byte[] passwordSalt){
+            using HMACSHA512 hmac = new();
+            passwordSalt = hmac.Key;
+            passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
         }
 
-        private bool VerifyPasswordHash(string password,byte[] passwordHash,byte[] passwordSalt){
-            using(var hmac = new HMACSHA512(user.PasswordSalt)){
-                var computedHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
-                return computedHash.SequenceEqual(passwordHash);
-            }
+        private static bool VerifyPasswordHash(string password,byte[] passwordHash){
+            using HMACSHA512 hmac = new(User1.PasswordSalt);
+            byte[] computedHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+            return computedHash.SequenceEqual(passwordHash);
         }
 
     }

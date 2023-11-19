@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Builder;
@@ -46,10 +47,10 @@ namespace PlatformService.Data{
 
                     var hmac = new HMACSHA512();
                     var passwordSalt = hmac.Key;
-                    var passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes("123"));
+                    var passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes("1234"));
                     
                     context.Users.AddRange(
-                        new User(){Username = "Maho", PasswordHash = passwordHash, PasswordSalt = passwordSalt}
+                        new User(){Username = "mceneli", PasswordHash = passwordHash, PasswordSalt = passwordSalt}
                     );
 
                 context.SaveChanges();
@@ -61,7 +62,7 @@ namespace PlatformService.Data{
                 Console.WriteLine("--> Seeding tweet data");
 
                 context.Tweets.AddRange(
-                    new Tweet(){UserName="mceneli", Text="first tweet!", Date=DateTime.Now}
+                    new Tweet(){UserName="mceneli", Text="first tweet!", Date=DateTime.Now, ImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "mceneli", "ananas.jpg")}
                 );
 
                 context.SaveChanges();

@@ -37,14 +37,15 @@ namespace PlatformService.Controllers{
         [HttpGet]
         public ActionResult<IEnumerable<TweetReadDto>> GetTweets(){
             Console.WriteLine("-> Getting Tweets...");
+            string authorizatedUser = HttpContext.User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")?.Value;
 
-            var tweetItem = _repository.GetAllTweets();
+            IEnumerable<Tweet> tweetItem = _repository.GetAllTweets();
 
             foreach (var item in tweetItem)
             {
                 if(item.ImagePath != null){
-                    var imageBytes = System.IO.File.ReadAllBytes(item.ImagePath);
-                    var base64String = Convert.ToBase64String(imageBytes);
+                    byte[] imageBytes = System.IO.File.ReadAllBytes(item.ImagePath);
+                    string base64String = Convert.ToBase64String(imageBytes);
                     item.ImagePath = base64String;
                 }
             }
@@ -56,7 +57,7 @@ namespace PlatformService.Controllers{
         public ActionResult<TweetReadDto> GetTweetById(int id){
             Console.WriteLine("-> Getting Tweet By Id...");
 
-            var tweetItem = _repository.GetTweetById(id);
+            Tweet tweetItem = _repository.GetTweetById(id);
 
             if(tweetItem != null){
                 return Ok(_mapper.Map<TweetReadDto>(tweetItem));
@@ -70,7 +71,7 @@ namespace PlatformService.Controllers{
 
             string authorizatedUser = HttpContext.User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")?.Value;
 
-            var tweetModel = _mapper.Map<Tweet>(tweetCreateDto);
+            Tweet tweetModel = _mapper.Map<Tweet>(tweetCreateDto);
             tweetModel.Date = DateTime.Now;
 
             if (Request.Form.Files.Count > 0)
@@ -114,17 +115,17 @@ namespace PlatformService.Controllers{
 
         private string SaveImageToStorage(IFormFile imageFile,string authorizatedUser)
         {
-            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", authorizatedUser);
+            string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", authorizatedUser);
 
             if (!Directory.Exists(uploadsFolder))
             {
                 Directory.CreateDirectory(uploadsFolder);
             }
 
-            var uniqueFileName = Guid.NewGuid().ToString() + "_" + imageFile.FileName;
-            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+            string uniqueFileName = Guid.NewGuid().ToString() + "_" + imageFile.FileName;
+            string filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
-            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            using (FileStream fileStream = new FileStream(filePath, FileMode.Create))
             {
                 imageFile.CopyTo(fileStream);
             }
