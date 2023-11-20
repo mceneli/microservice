@@ -29,6 +29,11 @@ namespace PlatformService.Data{
             return _context.Tweets.FirstOrDefault(p => p.Id == id);
         }
 
+        public IEnumerable<Tweet> GetTweetsByUsername(string username)
+        {
+            return _context.Tweets.ToList().Where(p => p.UserName == username);
+        }
+
         public void DeleteTweet(Tweet twt)
         {
             if (twt == null)

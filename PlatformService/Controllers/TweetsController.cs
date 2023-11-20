@@ -41,7 +41,7 @@ namespace PlatformService.Controllers{
 
             IEnumerable<Tweet> tweetItem = _repository.GetAllTweets();
 
-            foreach (var item in tweetItem)
+            foreach (Tweet item in tweetItem)
             {
                 if(item.ImagePath != null){
                     byte[] imageBytes = System.IO.File.ReadAllBytes(item.ImagePath);
@@ -63,6 +63,24 @@ namespace PlatformService.Controllers{
                 return Ok(_mapper.Map<TweetReadDto>(tweetItem));
             }
             return NotFound();
+        }
+
+        [HttpGet("GetTweetsByUsername/{username}", Name = "GetTweetsByUsername")]
+        public ActionResult<IEnumerable<TweetReadDto>> GetTweetByUsername(string username){
+            Console.WriteLine("-> Getting User's Tweets ...");
+
+            IEnumerable<Tweet> tweetItem = _repository.GetTweetsByUsername(username);
+
+            foreach (Tweet item in tweetItem)
+            {
+                if(item.ImagePath != null){
+                    byte[] imageBytes = System.IO.File.ReadAllBytes(item.ImagePath);
+                    string base64String = Convert.ToBase64String(imageBytes);
+                    item.ImagePath = base64String;
+                }
+            }
+
+            return Ok(_mapper.Map<IEnumerable<TweetReadDto>>(tweetItem));
         }
 
         [HttpPost("CreateTweet"), Authorize(Roles = "User")]
