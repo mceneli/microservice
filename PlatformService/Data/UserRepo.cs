@@ -43,5 +43,14 @@ namespace PlatformService.Data{
             return false;
         }
 
+        public bool MakePrivate(string username, bool isPrivate){
+            var user = _context.Users.FirstOrDefault(p => p.Username == username);
+            if(IsThereUser(username)){
+                user.IsPrivateAccount = isPrivate;
+                return true;
+            }
+            return false;
+        }
+
     }
 }

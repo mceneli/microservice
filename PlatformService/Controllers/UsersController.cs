@@ -37,6 +37,18 @@ namespace PlatformService.Controllers{
             return Ok(_mapper.Map<IEnumerable<UserReadDto>>(userItem));
         }
 
+        [HttpPost("MakePrivate"), Authorize(Roles = "User")]
+        public bool MakePrivate([FromBody] MakePrivateRequest request){
+            Console.WriteLine("-> Account Making Private...");
+
+            bool isPrivate = request.IsPrivate;
+
+            string authorizatedUser = HttpContext.User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")?.Value;
+
+            _repository.MakePrivate(authorizatedUser,isPrivate);
+            _repository.SaveChanges();
+            return true;
+        }
         
     }
 }

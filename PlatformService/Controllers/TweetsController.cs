@@ -12,6 +12,7 @@ using PlatformService.SyncDataServices.Http;
 using PlatformService.AsyncDataServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using System.Linq;
 
 namespace PlatformService.Controllers{
     [Route("api/[controller]")]
@@ -21,36 +22,44 @@ namespace PlatformService.Controllers{
         private readonly IMapper _mapper;
         private readonly ICommandDataClient _commandDataClient;
 		private readonly IMessageBusClient _messageBusClient;
+        private readonly IUserRepo _userrepo;
 
         public TweetsController(ITweetRepo repository,
 									IMapper mapper,
 									ICommandDataClient commandDataClient,
-									IMessageBusClient messageBusClient)
+									IMessageBusClient messageBusClient,
+                                    IUserRepo userrepo)
         {
             _repository = repository;
             _mapper = mapper;
             _commandDataClient = commandDataClient;
 			_messageBusClient = messageBusClient;
+            _userrepo = userrepo;
         }
 
-        //[HttpGet, Authorize(Roles = "User")]
         [HttpGet]
         public ActionResult<IEnumerable<TweetReadDto>> GetTweets(){
             Console.WriteLine("-> Getting Tweets...");
             string authorizatedUser = HttpContext.User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")?.Value;
 
             IEnumerable<Tweet> tweetItem = _repository.GetAllTweets();
+            List<Tweet> tweetResponse = new();
 
             foreach (Tweet item in tweetItem)
             {
-                if(item.ImagePath != null){
-                    byte[] imageBytes = System.IO.File.ReadAllBytes(item.ImagePath);
-                    string base64String = Convert.ToBase64String(imageBytes);
-                    item.ImagePath = base64String;
+                User owner = _userrepo.GetUserByName(item.UserName);
+                if( (owner.IsPrivateAccount == false) || owner.AllowedTweetAccess.Any(u => u.UserName == authorizatedUser) || (item.UserName == authorizatedUser) ){
+                    if(item.ImagePath != null){
+                        byte[] imageBytes = System.IO.File.ReadAllBytes(item.ImagePath);
+                        string base64String = Convert.ToBase64String(imageBytes);
+                        item.ImagePath = base64String;
+                    }
+                    tweetResponse.Add(item);
                 }
+ 
             }
 
-            return Ok(_mapper.Map<IEnumerable<TweetReadDto>>(tweetItem));
+            return Ok(_mapper.Map<IEnumerable<TweetReadDto>>(tweetResponse));
         }
 
         [HttpGet("{id}", Name = "GetTweetById")]
@@ -69,18 +78,23 @@ namespace PlatformService.Controllers{
         public ActionResult<IEnumerable<TweetReadDto>> GetTweetByUsername(string username){
             Console.WriteLine("-> Getting User's Tweets ...");
 
-            IEnumerable<Tweet> tweetItem = _repository.GetTweetsByUsername(username);
+            string authorizatedUser = HttpContext.User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")?.Value;
 
-            foreach (Tweet item in tweetItem)
-            {
-                if(item.ImagePath != null){
-                    byte[] imageBytes = System.IO.File.ReadAllBytes(item.ImagePath);
-                    string base64String = Convert.ToBase64String(imageBytes);
-                    item.ImagePath = base64String;
+            User user =_userrepo.GetUserByName(username);
+
+            if( (user.IsPrivateAccount == false) || user.AllowedTweetAccess.Any(u => u.UserName == authorizatedUser) || authorizatedUser == username ){
+                IEnumerable<Tweet> tweetItem = _repository.GetTweetsByUsername(username);
+                foreach (Tweet item in tweetItem)
+                {
+                    if(item.ImagePath != null){
+                        byte[] imageBytes = System.IO.File.ReadAllBytes(item.ImagePath);
+                        string base64String = Convert.ToBase64String(imageBytes);
+                        item.ImagePath = base64String;
+                    }
                 }
+                return Ok(_mapper.Map<IEnumerable<TweetReadDto>>(tweetItem));
             }
-
-            return Ok(_mapper.Map<IEnumerable<TweetReadDto>>(tweetItem));
+            return BadRequest("Profile is Hidden");         
         }
 
         [HttpPost("CreateTweet"), Authorize(Roles = "User")]

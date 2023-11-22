@@ -8,5 +8,6 @@ namespace PlatformService.Data{
         void CreateUser(User user);
         User GetUserByName(string username);
         bool IsThereUser(string username);
+        bool MakePrivate(string username,bool isPrivate);
     }
 }

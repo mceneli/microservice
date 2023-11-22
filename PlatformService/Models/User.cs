@@ -10,7 +10,8 @@ namespace PlatformService.Models{
         public byte[] PasswordHash { get; set; }
         [Required]
         public byte[] PasswordSalt { get; set; }
-        public decimal Balance { get; set; }
+        public decimal Balance { get; set; } = 5;
         public List<UserTweetAccess> AllowedTweetAccess { get; set; } = new List<UserTweetAccess>();
+        public bool IsPrivateAccount { get; set; } = false;
     }
 }
