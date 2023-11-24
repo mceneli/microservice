@@ -57,6 +57,7 @@ namespace PlatformService
             services.AddScoped<IPlatformRepo, PlatformRepo>();
             services.AddScoped<IUserRepo, UserRepo>();
             services.AddScoped<ITweetRepo, TweetRepo>();
+            services.AddScoped<ISubscriptionRepo, SubscriptionRepo>();
             services.AddHttpClient<ICommandDataClient,HttpCommandDataClient>();
 			services.AddSingleton<IMessageBusClient, MessageBusClient>();
             services.AddGrpc();

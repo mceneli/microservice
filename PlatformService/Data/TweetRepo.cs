@@ -31,7 +31,7 @@ namespace PlatformService.Data{
 
         public IEnumerable<Tweet> GetTweetsByUsername(string username)
         {
-            return _context.Tweets.ToList().Where(p => p.UserName == username);
+            return _context.Tweets.Where(p => p.UserName == username).ToList();
         }
 
         public void DeleteTweet(Tweet twt)

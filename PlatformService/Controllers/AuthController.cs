@@ -69,7 +69,7 @@ namespace PlatformService.Controllers{
                 var resulttoken = new { result = "1" };
                 return new JsonResult(resulttoken);
             }
-            if(!VerifyPasswordHash(request.Password,user.PasswordHash)){
+            if(!VerifyPasswordHash(request.Password,user.PasswordHash,user.PasswordSalt)){
                 var resulttoken = new { result = "2" };
                 return new JsonResult(resulttoken);
             }
@@ -108,10 +108,13 @@ namespace PlatformService.Controllers{
             passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
         }
 
-        private static bool VerifyPasswordHash(string password,byte[] passwordHash){
-            using HMACSHA512 hmac = new(User1.PasswordSalt);
-            byte[] computedHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
-            return computedHash.SequenceEqual(passwordHash);
+        private static bool VerifyPasswordHash(string password, byte[] storedPasswordHash, byte[] storedPasswordSalt)
+        {
+            using (HMACSHA512 hmac = new HMACSHA512(storedPasswordSalt))
+            {
+                byte[] computedHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+                return computedHash.SequenceEqual(storedPasswordHash);
+            }
         }
 
     }

@@ -25,7 +25,6 @@ namespace PlatformService.Controllers{
         {
             _repository = repository;
             _mapper = mapper;
-
         }
 
         [HttpGet]
@@ -45,10 +44,10 @@ namespace PlatformService.Controllers{
 
             string authorizatedUser = HttpContext.User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")?.Value;
 
-            _repository.MakePrivate(authorizatedUser,isPrivate);
+            bool response=_repository.MakePrivate(authorizatedUser,isPrivate);
             _repository.SaveChanges();
-            return true;
+            return response;
         }
-        
+
     }
 }

@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
+using PlatformService.Data;
 
 namespace PlatformService.Models{
     public class User{
@@ -11,7 +12,7 @@ namespace PlatformService.Models{
         [Required]
         public byte[] PasswordSalt { get; set; }
         public decimal Balance { get; set; } = 5;
-        public List<UserTweetAccess> AllowedTweetAccess { get; set; } = new List<UserTweetAccess>();
         public bool IsPrivateAccount { get; set; } = false;
+        public decimal Fee { get; set; } = 1;
     }
 }

@@ -20,21 +20,18 @@ namespace PlatformService.Controllers{
     public class TweetsController : ControllerBase{
         private readonly ITweetRepo _repository;
         private readonly IMapper _mapper;
-        private readonly ICommandDataClient _commandDataClient;
-		private readonly IMessageBusClient _messageBusClient;
         private readonly IUserRepo _userrepo;
+        private readonly ISubscriptionRepo _subrepo;
 
         public TweetsController(ITweetRepo repository,
 									IMapper mapper,
-									ICommandDataClient commandDataClient,
-									IMessageBusClient messageBusClient,
-                                    IUserRepo userrepo)
+                                    IUserRepo userrepo,
+                                    ISubscriptionRepo subrepo)
         {
             _repository = repository;
             _mapper = mapper;
-            _commandDataClient = commandDataClient;
-			_messageBusClient = messageBusClient;
             _userrepo = userrepo;
+            _subrepo = subrepo;
         }
 
         [HttpGet]
@@ -48,7 +45,7 @@ namespace PlatformService.Controllers{
             foreach (Tweet item in tweetItem)
             {
                 User owner = _userrepo.GetUserByName(item.UserName);
-                if( (owner.IsPrivateAccount == false) || owner.AllowedTweetAccess.Any(u => u.UserName == authorizatedUser) || (item.UserName == authorizatedUser) ){
+                if( (owner.IsPrivateAccount == false) || _subrepo.CheckSubscription(item.UserName, authorizatedUser) || (item.UserName == authorizatedUser) ){
                     if(item.ImagePath != null){
                         byte[] imageBytes = System.IO.File.ReadAllBytes(item.ImagePath);
                         string base64String = Convert.ToBase64String(imageBytes);
@@ -82,7 +79,7 @@ namespace PlatformService.Controllers{
 
             User user =_userrepo.GetUserByName(username);
 
-            if( (user.IsPrivateAccount == false) || user.AllowedTweetAccess.Any(u => u.UserName == authorizatedUser) || authorizatedUser == username ){
+            if( (user.IsPrivateAccount == false) || _subrepo.CheckSubscription(username, authorizatedUser) || authorizatedUser == username ){
                 IEnumerable<Tweet> tweetItem = _repository.GetTweetsByUsername(username);
                 foreach (Tweet item in tweetItem)
                 {

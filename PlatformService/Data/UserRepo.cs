@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using PlatformService.Models;
 
 namespace PlatformService.Data{
     public class UserRepo : IUserRepo
     {
         private readonly AppDbContext _context;
-
         public UserRepo(AppDbContext context){
             _context = context;
         }
@@ -44,7 +44,7 @@ namespace PlatformService.Data{
         }
 
         public bool MakePrivate(string username, bool isPrivate){
-            var user = _context.Users.FirstOrDefault(p => p.Username == username);
+            User user = GetUserByName(username);
             if(IsThereUser(username)){
                 user.IsPrivateAccount = isPrivate;
                 return true;
